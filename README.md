@@ -35,3 +35,7 @@ link to their web page: https://www.tamsat.org.uk
 2. Explore Faster Loading and Processing - For very large datasets, loading and processing everything at once might be inefficient. Can you explore techniques like chunking to potentially improve performance?
 
 3. To contribute your changes, submit a pull request 
+
+                    ** code update**
+
+Added a cell  that computes quaterly average of "sm_c4grass" and plaots the average of  each quater of years from 1983 and plots them to a single pdf
