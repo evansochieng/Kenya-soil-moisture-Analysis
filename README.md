@@ -28,14 +28,17 @@ It prompts user to input year to perform aggregation & plotting for that specifi
 The data was obtained from Tamsat (Tropical Applications of Meteorology using SATellite data and ground-based observations.)
 link to their web page: https://www.tamsat.org.uk
 
-                    ** Challenge :) **
+                    ** Hold on do not leave so fast, Lets make this project great with your contribution,  Challenge :) **
 
 1. Refactor code - The code includes repetitive sections for plotting monthly and annual average soil moisture. Can you refactor it into a reusable function to improve maintainability and reduce code duplication?
 
 2. Explore Faster Loading and Processing - For very large datasets, loading and processing everything at once might be inefficient. Can you explore techniques like chunking to potentially improve performance?
 
-3. To contribute your changes, submit a pull request 
+3. To contribute your changes & ideas , submit a pull request 
 
                     ** code update**
 
-Added a cell  that computes quaterly average of "sm_c4grass" and plaots the average of  each quater of years from 1983 and plots them to a single pdf
+1. Added a cell  that computes quaterly average of "sm_c4grass" and plots the average of  each quater of years from 1983 and plots them to a single pdf
+
+2. Created the time-series.py script to pull the clipped data and store them in a time series fomart ward by ward
+        
