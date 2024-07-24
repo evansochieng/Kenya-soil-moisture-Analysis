@@ -5,22 +5,17 @@ import rioxarray
 import pandas as pd
 from shapely.geometry import mapping
 
-# Function to process all years and create a time series of soil moisture data for each ward
-def create_soil_moisture_time_series(base_dir, shapefile_path, start_year, end_year, excel_path):
+def sanitize_filename(filename):
+    # Replace invalid characters with underscores
+    return "".join(char if char.isalnum() or char in (' ', '_') else '_' for char in filename)
+
+def create_daily_soil_moisture(base_dir, shapefile_path, start_year, end_year):
     # Load Shapefile
     wards = gpd.read_file(shapefile_path)
     
-    # Initialize dictionary to store data
-    time_series_data = {ward: [] for ward in wards['NAME_3']}  # Assuming 'NAME_3' is the ward name column
-    
-    # Define three-month periods
-    three_month_groups = {
-        'Jan-Mar': ['01', '02', '03'],
-        'Apr-Jun': ['04', '05', '06'],
-        'Jul-Sep': ['07', '08', '09'],
-        'Oct-Dec': ['10', '11', '12']
-    }
-    
+    # Initialize dictionary to store data for each ward
+    ward_data = {ward.NAME_3: [] for ward in wards.itertuples()}
+
     # Iterate through each year
     for year in range(start_year, end_year + 1):
         year_dir = os.path.join(base_dir, str(year))
@@ -28,9 +23,6 @@ def create_soil_moisture_time_series(base_dir, shapefile_path, start_year, end_y
             continue
 
         print(f"Processing year: {year}")
-
-        # Initialize list to store monthly averages for the selected year
-        monthly_averages_selected_year = []
 
         # Iterate over each month directory within the selected year
         for month_dir in sorted(os.listdir(year_dir)):
@@ -43,82 +35,58 @@ def create_soil_moisture_time_series(base_dir, shapefile_path, start_year, end_y
             # Create a list of nc file paths within that month
             data_files = [f for f in os.listdir(month_path) if f.endswith('.nc')]
 
-            # Initialize an empty list to store datasets
-            datasets = []
-
-            # Loop through each data file, open dataset, and append to datasets list
+            # Loop through each data file, open dataset, and process daily data
             for data_file in data_files:
                 file_path = os.path.join(month_path, data_file)
                 data = xr.open_dataset(file_path)
-                datasets.append(data)
 
-            # Concatenate datasets along time dimension
-            combined_data = xr.concat(datasets, dim='time')
+                # Set spatial dimensions and CRS
+                data.rio.set_spatial_dims(x_dim='lon', y_dim='lat', inplace=True)
+                data.rio.write_crs('epsg:4326', inplace=True)
 
-            # Calculate mean of 'sm_c4grass' along the time dimension (monthly average)
-            mean_sm_c4grass_monthly = combined_data['sm_c4grass'].mean(dim='time')
+                # Iterate over each time slice (daily data)
+                for time_index in data['time']:
+                    daily_data_slice = data.sel(time=time_index)
 
-            # Set spatial dimensions and CRS
-            mean_sm_c4grass_monthly.rio.set_spatial_dims(x_dim='lon', y_dim='lat', inplace=True)
-            mean_sm_c4grass_monthly.rio.write_crs('epsg:4326', inplace=True)
+                    # Clip data to Kenya boundary using Level 3 shapefile
+                    try:
+                        clipped_data_daily = daily_data_slice['sm_c4grass'].rio.clip(wards.geometry.apply(mapping), wards.crs, drop=True)
 
-            # Clip data to Kenya boundary using Level 3 shapefile
-            try:
-                clipped_data_monthly = mean_sm_c4grass_monthly.rio.clip(wards.geometry.apply(mapping), wards.crs, drop=True)
+                        # Append data for each ward to the list for daily data
+                        for ward in wards.itertuples():
+                            ward_name = ward.NAME_3 
+                            soil_moisture_value = clipped_data_daily.sel(lon=ward.geometry.centroid.x, lat=ward.geometry.centroid.y, method='nearest').item()
+                            date = pd.to_datetime(str(time_index.values)).date()
+                            ward_data[ward_name].append({
+                                'Date': date,
+                                'Soil_Moisture': soil_moisture_value
+                            })
+                    except Exception as e:
+                        print(f"Error processing {data_file} {year}-{month_dir}: {e}")
 
-                # Append monthly average to list for the selected year
-                monthly_averages_selected_year.append((month_dir, clipped_data_monthly))
-            except Exception as e:
-                print(f"Error processing {month_dir} {year}: {e}")
+    # Save each ward's data to separate Excel files
+    output_dir = r'E:\Python\GeoPandas\WardOutput'  
+    os.makedirs(output_dir, exist_ok=True) 
 
-        # Calculate average for each three-month period and append to the time series data
-        for period, months in three_month_groups.items():
-            period_data = [data for month, data in monthly_averages_selected_year if month in months]
-
-            if period_data:
-                period_average = xr.concat(period_data, dim='time').mean(dim='time')
-
-                # Set spatial dimensions and CRS for the three-month average
-                period_average.rio.set_spatial_dims(x_dim='lon', y_dim='lat', inplace=True)
-                period_average.rio.write_crs('epsg:4326', inplace=True)
-
-                # Clip data to Kenya boundary for the three-month average
-                clipped_data_period = period_average.rio.clip(wards.geometry.apply(mapping), wards.crs, drop=True)
-
-                # Append data for each ward to the time series data
-                for ward in wards.itertuples():
-                    ward_name = ward.NAME_3  # Assuming 'NAME_3' is the ward name column
-                    soil_moisture_value = clipped_data_period.sel(lon=ward.geometry.centroid.x, lat=ward.geometry.centroid.y, method='nearest').item()
-                    time_series_data[ward_name].append({
-                        'Year': year,
-                        'Period': period,
-                        'Soil_Moisture': soil_moisture_value
-                    })
-            else:
-                print(f"No data available for period {period} {year}")
-
-    # Create DataFrame to store the time series data
-    all_data = []
-    for ward_name, values in time_series_data.items():
-        for entry in values:
-            entry['Ward'] = ward_name
-            all_data.append(entry)
-
-    time_series_df = pd.DataFrame(all_data)
-
-    # Pivot the DataFrame to have wards as columns and time periods as rows
-    pivot_df = time_series_df.pivot_table(index=['Year', 'Period'], columns='Ward', values='Soil_Moisture')
-
-    # Save DataFrame to Excel
-    pivot_df.to_excel(excel_path)
-    print(f"Time series data saved to {excel_path}")
+    for ward_name, data_list in ward_data.items():
+        # Sanitize the ward name for the directory
+        sanitized_ward_name = sanitize_filename(ward_name)
+        ward_output_dir = os.path.join(output_dir, sanitized_ward_name)
+        os.makedirs(ward_output_dir, exist_ok=True)  
+        
+        # Create a DataFrame for the ward
+        ward_df = pd.DataFrame(data_list)
+        # Define the path for the Excel file
+        excel_path = os.path.join(ward_output_dir, f"{sanitized_ward_name}_Daily_Soil_Moisture.xlsx")
+        # Write DataFrame to Excel
+        ward_df.to_excel(excel_path, index=False)
+        print(f"Daily soil moisture data for {ward_name} saved to {excel_path}")
 
 # Parameters
 base_dir = r'E:\Python\GeoPandas\Tamstat_data'
 shapefile_path = r'E:\Python\GeoPandas\gadm41_KEN_shp\gadm41_KEN_3.shp'
 start_year = 1983
 end_year = 2024
-excel_path = "Kenya_Average_Soil_Moisture_Time_Series_1983_2024.xlsx"
 
-# Create time series data
-create_soil_moisture_time_series(base_dir, shapefile_path, start_year, end_year, excel_path)
+# Create daily soil moisture data
+create_daily_soil_moisture(base_dir, shapefile_path, start_year, end_year)
