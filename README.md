@@ -1,44 +1,83 @@
-# Kenya-soil-moisture-Analysis
-This repository contains a Python script for processing and visualizing soil moisture data in Kenya from (19833 to date).
-                    ** Objectives
-OVisualise the data  to assist relevant sectors in monitoring land surface and identify areas where Matured crops are likely to be undergoing water Stress. and provide valuable insights in identifying conditions that can lead to poor crop growth or even crop failure.
 
-                ** Requirements**
-Python 3.x  Libraries: xarray, rasterio, matplotlib, pandas
+# Kenya soil moisture Analysis
+# Overview
+This project focuses on analyzing soil moisture data for Kenya, spanning the years 1983 to 2024. The data is sourced from TAMSAT and involves several key steps, including downloading, clipping, and visualizing soil moisture metric
 
-                ** Overview ***
-The script processes .nc files to compute monthly and annual average soil moisture levels, clipps it to the administrative boundaries of Kenya (level 3). The results are then saved as PDF plots for easier access.
-Monthly average is computed since the soil moisture(sm_c4grass) is measured in 3 decads(measured in a period of 10 days) thus we need to calculate the mean of all three decads to perform monthly aggregation and plotting.
-It prompts user to input year to perform aggregation & plotting for that specific Year
+# Objectives
+Data Acquisition: writing a python script to download soil moisture data from TAMSAT data repository
 
-                ** Running the Script**
-1. Ensure you have the required libraries installed.
-2. Download and organize your NetCDF data files with a structure where each year has its own directory.(I got you :), WebCrawler.py will do that for you )
-3. Update the script (if needed) to point to the location of your data directory.
-4. Run the script using python script_name.py.
-5. The script will prompt you to select a year from available options.
-6. Upon completion, a PDF file (Kenya_Average_Soil_Moisture_{selected_year}.pdf) will be generated containing the plots for the chosen year.
+Data Processing
+Mapping/clipping the data to Kenya's geographical  boundaries as   our main region of focus
+Calculate and visualize monthly, quarterly (three-month average), and Annual soil moisture averages.
 
-                     ***NOTE*******
-1. Execute the Webcrawler.py Script first to fetch the data from Tamsat
-2. since the data set is huge, I implemented lazy loading, files paths are stored to a list and a single year path that a user selects is processed. This utilises time & computational resouces compared to the approach of loading the entire dataset.
-3. The pdf files are plots of few years that I had already processed.
+Extracting the processed soil moisture data and export it to Excel in a time series format for further analysis
+## Data 
 
-                    ****Data Source***
-The data was obtained from Tamsat (Tropical Applications of Meteorology using SATellite data and ground-based observations.)
-link to their web page: https://www.tamsat.org.uk
 
-                    ** Hold on do not leave so fast, Lets make this project great with your contribution,  Challenge :) **
+Spatial domain	African continent, including Madagascar (N: 37.375°, S: -35.375°, W: -17.875°, E:51.375°)
 
-1. Refactor code - The code includes repetitive sections for plotting monthly and annual average soil moisture. Can you refactor it into a reusable function to improve maintainability and reduce code duplication?
+Dimensions	292 pixels (latitude) by 278 pixels (longitude)
 
-2. Explore Faster Loading and Processing - For very large datasets, loading and processing everything at once might be inefficient. Can you explore techniques like chunking to potentially improve performance?
+Spatial resolution	0.25° (approx. 25km)
 
-3. To contribute your changes & ideas , submit a pull request 
+Time-step	daily, pentadal, dekadal, monthly, seasonal
 
-                    ** code update**
+Data format	- 
+NetCDF
 
-1. Added a cell  that computes quaterly average of "sm_c4grass" and plots the average of  each quater of years from 1983 and plots them to a single pdf
+Available variable -	sm_c4grass
 
-2. Created the time-series.py script to pull the clipped data and store them in a time series fomart ward by ward
-        
+Cost and Terms of use	- TAMSAT data are free to use and are released for operational, research and commercial use under the terms of the Creative Commons Attribution 4.0 International license (CC BY 4.0). To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/. 
+
+Read more at : https://research.reading.ac.uk/tamsat/soil-moisture/
+
+## Run Locally
+
+Clone the project
+
+```bash
+  git clone https://github.com/kiptoorono/Kenya-soil-moisture-Analysis.git
+```
+
+Go to the project directory
+
+```bash
+  cd Kenya-soil-moisture-Analysis
+```
+
+Install dependencies
+
+```bash
+    pip install -r requirements.txt
+
+```
+
+Download Kenya Shape file level 3 from GADM
+
+ link ->  https://gadm.org/download_country.html
+
+
+Run the data downloading script
+
+```bash
+  WebCrawler.py
+```
+
+
+Run the quaterly plots script
+
+```bash
+  quaterly plots.py
+```
+
+run the data fetching script for the time series
+
+```bash
+  Time Series Matrix.py
+```
+** Note**
+Make changes to directory paths in the scripts
+
+## Documentation
+:( 
+    working progress
