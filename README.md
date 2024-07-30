@@ -79,4 +79,4 @@ run the data fetching script for the time series
 Make changes to directory paths in the scripts
 
 ## Documentation
-Kenya-soil-moisture-Analysis\Docs.pdf
+[Kenya-soil-moisture-Analysis\Docs.pdf](https://github.com/kiptoorono/Kenya-soil-moisture-Analysis/blob/main/Docs.pdf)
