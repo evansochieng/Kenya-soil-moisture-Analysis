@@ -16,8 +16,6 @@ base_dir = r"E:\Python\GeoPandas\Tamstat_data"
 
 # Load Kenya shapefile
 kenya = gpd.read_file(r'E:\Python\GeoPandas\gadm41_KEN_shp\gadm41_KEN_3.shp')
-
-#********** Create a single PDF of all the Years combined ******
 # Create a dictionary to store paths for each year
 year_paths = {}
 for year_dir in os.listdir(base_dir):
@@ -33,21 +31,14 @@ with PdfPages(pdf_path) as pdf:
 
         # Initialize list to store monthly averages for the selected year
         monthly_averages_selected_year = []
-
-        # Iterate over each month directory within the selected year
         for month_dir in sorted(os.listdir(selected_year_path)):
             month_path = os.path.join(selected_year_path, month_dir)
-
-            # Check if it's a directory
             if not os.path.isdir(month_path):
-                continue  # Skip if it's not a directory
-
+                continue
             # Create a list of nc file paths within that month
             data_files = [f for f in os.listdir(month_path) if f.endswith('.nc')]
 
-            # Initialize an empty list to store datasets
             datasets = []
-
             # Loop through each data file, open dataset, and append to datasets list
             for data_file in data_files:
                 file_path = os.path.join(month_path, data_file)
