@@ -75,7 +75,7 @@ run the data fetching script for the time series
 ```bash
   Time Series Matrix.py
 ```
-## ** Note**
+## Note
 Make changes to directory paths in the scripts
 
 
