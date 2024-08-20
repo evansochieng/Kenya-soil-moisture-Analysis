@@ -10,10 +10,10 @@ Data Processing
 Mapping/clipping the data to Kenya's geographical  boundaries as   our main region of focus
 Calculate and visualize monthly, quarterly (three-month average), and Annual soil moisture averages.
 
-Extracting the processed soil moisture data and export it to Excel in a time series format for further analysis
+Extracting the processed soil moisture data and export it to Excel in a matrix time series  format for different wards separatelyfor further analysis
 ## Data 
 
-
+Data was sourced from TAMSAT and has the following properties.
 Spatial domain	African continent, including Madagascar (N: 37.375°, S: -35.375°, W: -17.875°, E:51.375°)
 
 Dimensions	292 pixels (latitude) by 278 pixels (longitude)
@@ -75,8 +75,9 @@ run the data fetching script for the time series
 ```bash
   Time Series Matrix.py
 ```
-** Note**
+## ** Note**
 Make changes to directory paths in the scripts
+
 
 ## Documentation
 [Kenya-soil-moisture-Analysis Docs](https://github.com/kiptoorono/Kenya-soil-moisture-Analysis/blob/main/Docs.pdf)
